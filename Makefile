@@ -1,12 +1,12 @@
-PRODUCT = hello
-PLATFORMS += adam
-PLATFORMS += adam_cpm
-PLATFORMS += apple2
-PLATFORMS += atari
-PLATFORMS += c64
+PRODUCT = blkjack
+#PLATFORMS += adam
+#PLATFORMS += adam_cpm
+#PLATFORMS += apple2
+#PLATFORMS += atari
+#PLATFORMS += c64
 PLATFORMS += coco
-PLATFORMS += msdos
-PLATFORMS += msxrom
+#PLATFORMS += msdos
+#PLATFORMS += msxrom
 
 # You can run 'make <platform>' to build for a specific platform,
 # or 'make <platform>/<target>' for a platform-specific target.
@@ -48,6 +48,27 @@ PLATFORM_COMBOS = \
   msxdos+=msx \
   adam_cpm+=adam
 
+# CoCo 3 build: same sources as CoCo 1/2, compiled with -DCOCO3 for the
+# 320x200x16 GIME mode. The framebuffer lives at $8000 via MMU Task 1.
+ifeq ($(MAKE_COCO3),COCO3)
+  CFLAGS_EXTRA_COCO += -DCOCO3
+  LDFLAGS_EXTRA_COCO += --org=1000 --limit=7000
+  COCO_CHARSET_SRC := support/coco/pmode3_coco3.fnt
+else
+  # The CoCo 1/2 hires screen is fixed at $6000 (src/coco/hires.h)
+  LDFLAGS_EXTRA_COCO += --org=1000 --limit=6000
+  COCO_CHARSET_SRC := support/coco/pmode3.fnt
+endif
+
+# src/coco/charset.s includes a fixed path, so stage the model's font there
+build/charset_active.fnt: $(COCO_CHARSET_SRC) | build
+	cp $< $@
+
+build:
+	mkdir -p $@
+
+build/$(PRODUCT)/coco/src/coco/charset.o: build/charset_active.fnt
+
 include mekkogx/toplevel-rules.mk
 
 # If you need to add extra platform-specific steps, do it below:
@@ -55,3 +76,36 @@ include mekkogx/toplevel-rules.mk
 #   coco/r2r:: coco/custom-step2
 # or
 #   apple2/disk: apple2/custom-step1 apple2/custom-step2
+
+# CoCo targets:
+#   make coco        → CoCo 1/2 build
+#   make coco3       → CoCo 3 build
+#   make coco-dist   → combined disk with loader + both CoCo binaries
+
+.PHONY: coco3 coco-dist
+
+coco3:
+	$(MAKE) coco MAKE_COCO3=COCO3
+
+# The loader (support/coco/loader.c) runs BLKJACK2 or BLKJACK3 by model
+R2R_PRODUCT = r2r/coco/$(PRODUCT)
+COCO_DISK   = $(R2R_PRODUCT).dsk
+
+coco-dist:
+	$(MAKE) clean
+	rm -rf build
+	$(MAKE) coco
+	mv $(R2R_PRODUCT).bin $(R2R_PRODUCT)2.bin
+
+	rm -rf build
+	$(MAKE) coco3
+	mv $(R2R_PRODUCT).bin $(R2R_PRODUCT)3.bin
+
+	cmoc -o $(R2R_PRODUCT).bin support/coco/loader.c
+
+	$(RM) $(COCO_DISK)
+	decb dskini $(COCO_DISK)
+	decb copy -t -0 support/coco/autoexec.bas $(COCO_DISK),AUTOEXEC.BAS
+	decb copy -b -2 $(R2R_PRODUCT).bin   $(COCO_DISK),BLKJACK.BIN
+	decb copy -b -2 $(R2R_PRODUCT)2.bin  $(COCO_DISK),BLKJACK2.BIN
+	decb copy -b -2 $(R2R_PRODUCT)3.bin  $(COCO_DISK),BLKJACK3.BIN

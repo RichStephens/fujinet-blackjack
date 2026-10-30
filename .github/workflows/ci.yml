@@ -14,14 +14,14 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - adam
-          - adam_cpm
-          - apple2
-          - atari
-          - c64
+          # - adam
+          # - adam_cpm
+          # - apple2
+          # - atari
+          # - c64
           - coco
-          - msdos
-          - msxdos
+          # - msdos
+          # - msxdos
 
     container:
       image: fozztexx/defoogi:1.4.7
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build
-        run: make ${{ matrix.platform }}/r2r
+        run: make ${{ matrix.platform == 'coco' && 'coco-dist' || format('{0}/r2r', matrix.platform) }}
 
       # PR case: normal artifact upload
       - name: Upload artifact for ${{ matrix.platform }}

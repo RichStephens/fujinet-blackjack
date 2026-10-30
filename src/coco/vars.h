@@ -1,0 +1,77 @@
+#ifdef _CMOC_VERSION_
+
+#ifndef KEYMAP_H
+#define KEYMAP_H
+
+// Screen dimensions for platform
+
+#ifndef COCO3
+#define WIDTH 32
+#define HEIGHT 24
+/* Source-charset addressing for the 4-pixel-wide pmode3 font:
+   8 bytes/glyph, 1 byte/row. */
+#define CHAR_SHIFT << 3
+#define CHAR_ROW(r) (r)
+#else
+/* CoCo 3: standard 320x200x16 GIME mode (FF99=$3E). WIDTH/HEIGHT are
+   character cells (8x8 px, BPC bytes wide); STRIDE is bytes/scanline.
+   CHAR_SHIFT/CHAR_ROW address the 16-byte/glyph charset. */
+#define WIDTH 40
+#define HEIGHT 24
+#define BPC 4
+#define STRIDE 160
+#define CHAR_SHIFT << 4
+#define CHAR_ROW(r) ((r) * 2)
+#endif
+
+#define SINGLE_BUFFER
+#define HIRES_Y 1
+#define STATUS_TIMER_WIDTH 1
+
+#define QUERY_SUFFIX "&be=1" // big endian uint16s for the 6809
+
+/**
+ * Platform specific key map for common input
+ */
+
+
+#define KEY_LEFT_ARROW      0x08
+#define KEY_LEFT_ARROW_2    0xF1
+#define KEY_LEFT_ARROW_3    0xF2 // ,
+
+#define KEY_RIGHT_ARROW     0x09
+#define KEY_RIGHT_ARROW_2   0xF3
+#define KEY_RIGHT_ARROW_3   0xF4 // .
+
+#define KEY_UP_ARROW        0x5E
+#define KEY_UP_ARROW_2      0x85
+#define KEY_UP_ARROW_3      0x86 // -
+
+#define KEY_DOWN_ARROW      0x0A
+#define KEY_DOWN_ARROW_2    0x87
+#define KEY_DOWN_ARROW_3    0x89 // =
+
+#define KEY_RETURN       0x0D
+
+#define KEY_ESCAPE       0x03
+#define KEY_ESCAPE_ALT   0x1B
+
+#define KEY_SPACE        0x20
+#define KEY_BACKSPACE    0x08
+
+#define CHAR_CURSOR      0x9F
+
+/*
+  Mapping for converting incoming ALT letters to a standard case
+*/
+
+#define LINE_ENDING 0x0A
+#define ALT_LETTER_START 0x61
+#define ALT_LETTER_END 0x7A
+#define ALT_LETTER_AND 0x5f
+
+
+
+#endif /* KEYMAP_H */
+
+#endif /* _CMOC_VERSION_ */
