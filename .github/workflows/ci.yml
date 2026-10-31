@@ -17,7 +17,7 @@ jobs:
           # - adam
           # - adam_cpm
           # - apple2
-          # - atari
+          - atari
           # - c64
           - coco
           # - msdos

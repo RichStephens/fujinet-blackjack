@@ -20,7 +20,7 @@ static const unsigned char seatX[] = { 14, 1, 1, 27, 27 };
 #define DEALER_W 12
 static const unsigned char seatX[] = { 11, 0, 0, 22, 22 };
 #endif
-static const unsigned char seatY[] = { 18, 18, 10, 10, 18 };
+static const unsigned char seatY[] = { SEAT_BOTTOM_Y, SEAT_BOTTOM_Y, SEAT_TOP_Y, SEAT_TOP_Y, SEAT_BOTTOM_Y };
 
 /* Seats used at each player count */
 static const unsigned char seatOrder[5][5] = {
@@ -35,6 +35,9 @@ static const unsigned char seatOrder[5][5] = {
 #endif
 
 #define DEALER_Y 2
+
+// Atari card edges already space split hands apart
+#define HAND_GAP (1 - CARD_EDGE)
 #define MENU_END (WIDTH - 5 - STATUS_TIMER_WIDTH)
 
 static unsigned char step;
@@ -66,19 +69,26 @@ static const char *handLabel(Hand *hd) {
 
 // Columns a hand of n cards takes, with room for its label when fanned
 static unsigned char handWidth(unsigned char n) {
+  static unsigned char w;
+
   if (step == 2)
-    return n * 2;
-  return n < 3 ? 4 : n + 1;
+    return n * 2 + CARD_EDGE * 2;
+  w = n + 1 + CARD_EDGE * 2;
+  return w < 4 ? 4 : w;
 }
 
 void redrawDealer() {
   static unsigned char n, w, dx, c;
 
-  clearArea(WIDTH/2 - DEALER_W/2 - 1, DEALER_Y - 1, DEALER_W + 2, 5);
+  clearArea(WIDTH/2 - DEALER_W/2 - 1, DEALER_Y - 1, DEALER_W + 2, CARD_HEIGHT + 1);
 
   n = (unsigned char)(strlen(state.dealer) / 2);
-  step = n * 2 <= DEALER_W ? 2 : 1;
-  w = step == 2 ? n * 2 : n + 1;
+  step = 2;
+  w = handWidth(n);
+  if (w > DEALER_W) {
+    step = 1;
+    w = handWidth(n);
+  }
   dx = (unsigned char)(WIDTH/2 - w/2);
 
   strcpy(tempBuffer + 64, "dealer");
@@ -163,7 +173,7 @@ static void drawSeat(unsigned char p) {
 
   // Full width cards if every hand fits, otherwise fan them all
   for (step = 2; ; step = 1) {
-    w = pl->handCount - 1;
+    w = (pl->handCount - 1) * HAND_GAP;
     for (c = 0; c < pl->handCount; c++) {
       shown[c] = (unsigned char)(strlen(pl->hands[c].cards) / 2);
       w += handWidth(shown[c]);
@@ -192,7 +202,7 @@ static void drawSeat(unsigned char p) {
     for (d = 0; d < shown[c]; d++)
       drawCard(hx + d * step, sy, (step == 1 && d) ? FANNED_CARD : FULL_CARD, hd->cards + (n - shown[c] + d) * 2);
 
-    hx += handWidth(shown[c]) + 1;
+    hx += handWidth(shown[c]) + HAND_GAP;
   }
 }
 
@@ -200,7 +210,7 @@ void redrawSeat(unsigned char p) {
   static unsigned char s;
 
   s = seatOrder[state.playerCount - 1][p];
-  clearArea(seatX[s], seatY[s] - 4, SEAT_W, 8);
+  clearArea(seatX[s], seatY[s] - 4, SEAT_W, CARD_HEIGHT + 4);
   drawSeat(p);
 }
 

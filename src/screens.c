@@ -307,7 +307,7 @@ void showInGameMenuScreen() {
 #if WIDTH >= 40
     drawText(x, y += 2, "  c: color toggle");
 #endif
-    drawText(x, y += 2, "brk: keep playing");
+    drawText(x, y += 2, ESC_KEY_NAME ": keep playing");
 
     clearCommonInput();
     i = 1;

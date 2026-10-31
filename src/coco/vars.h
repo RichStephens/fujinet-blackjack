@@ -28,6 +28,11 @@
 #define HIRES_Y 1
 #define STATUS_TIMER_WIDTH 1
 
+#define CARD_HEIGHT 4
+#define CARD_EDGE 0
+#define SEAT_TOP_Y 10
+#define SEAT_BOTTOM_Y 18
+
 #define QUERY_SUFFIX "&be=1" // big endian uint16s for the 6809
 
 /**
@@ -55,6 +60,7 @@
 
 #define KEY_ESCAPE       0x03
 #define KEY_ESCAPE_ALT   0x1B
+#define ESC_KEY_NAME     "brk"
 
 #define KEY_SPACE        0x20
 #define KEY_BACKSPACE    0x08
