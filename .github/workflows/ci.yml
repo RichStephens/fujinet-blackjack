@@ -16,7 +16,7 @@ jobs:
         platform:
           # - adam
           # - adam_cpm
-          # - apple2
+          - apple2
           - atari
           # - c64
           - coco

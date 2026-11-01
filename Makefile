@@ -1,7 +1,7 @@
 PRODUCT = blkjack
 #PLATFORMS += adam
 #PLATFORMS += adam_cpm
-#PLATFORMS += apple2
+PLATFORMS += apple2
 PLATFORMS += atari
 #PLATFORMS += c64
 PLATFORMS += coco
@@ -69,7 +69,13 @@ build:
 
 build/$(PRODUCT)/coco/src/coco/charset.o: build/charset_active.fnt
 
+# Code starts at $4000, after hires page 1
+LDFLAGS_EXTRA_APPLE2 = -C src/apple2/apple2-hgr.cfg
+
 include mekkogx/toplevel-rules.mk
+
+apple2/disk-post::
+	$(DISK_TOOL_X) rm -d $(DISK) BASIC.SYSTEM
 
 # If you need to add extra platform-specific steps, do it below:
 #   coco/r2r:: coco/custom-step1

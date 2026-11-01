@@ -4,6 +4,7 @@
 // Each platform's vars.h is guarded by its own compiler macro
 #include "../coco/vars.h"
 #include "../atari/vars.h"
+#include "../apple2/vars.h"
 
 #ifndef WIDTH
 #error "no platform vars.h matched this build"
