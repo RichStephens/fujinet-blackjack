@@ -5,7 +5,7 @@ PLATFORMS += apple2
 PLATFORMS += atari
 #PLATFORMS += c64
 PLATFORMS += coco
-#PLATFORMS += msdos
+PLATFORMS += msdos
 #PLATFORMS += msxrom
 
 # You can run 'make <platform>' to build for a specific platform,
@@ -69,6 +69,8 @@ build:
 
 build/$(PRODUCT)/coco/src/coco/charset.o: build/charset_active.fnt
 
+CFLAGS_EXTRA_MSDOS = -q -otexan
+
 # Code starts at $4000, after hires page 1
 LDFLAGS_EXTRA_APPLE2 = -C src/apple2/apple2-hgr.cfg
 
@@ -76,6 +78,10 @@ include mekkogx/toplevel-rules.mk
 
 apple2/disk-post::
 	$(DISK_TOOL_X) rm -d $(DISK) BASIC.SYSTEM
+
+# The lobby boots MS-DOS games through the disk's AUTOEXEC.BAT
+msdos/disk-post::
+	mcopy -t -i $(DISK) src/msdos/AUTOEXEC.BAT "::AUTOEXEC.BAT"
 
 # If you need to add extra platform-specific steps, do it below:
 #   coco/r2r:: coco/custom-step1

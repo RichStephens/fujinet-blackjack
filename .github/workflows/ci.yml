@@ -20,7 +20,7 @@ jobs:
           - atari
           # - c64
           - coco
-          # - msdos
+          - msdos
           # - msxdos
 
     container:

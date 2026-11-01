@@ -5,6 +5,7 @@
 #include "../coco/vars.h"
 #include "../atari/vars.h"
 #include "../apple2/vars.h"
+#include "../msdos/vars.h"
 
 #ifndef WIDTH
 #error "no platform vars.h matched this build"
