@@ -11,7 +11,11 @@
 
 /* Seat 0 is the client, bottom center. Seats 1-2 run up the left side and
    3-4 down the right, which align to the screen edge. */
-#if WIDTH >= 40
+#if WIDTH >= 80
+#define SEAT_W 24
+#define DEALER_W 28
+static const unsigned char seatX[] = { 28, 2, 2, 54, 54 };
+#elif WIDTH >= 40
 #define SEAT_W 12
 #define DEALER_W 14
 static const unsigned char seatX[] = { 14, 1, 1, 27, 27 };
@@ -35,6 +39,11 @@ static const unsigned char seatOrder[5][5] = {
 #endif
 
 #define DEALER_Y 2
+
+#ifndef CARD_W
+#define CARD_W 2
+#endif
+#define FAN_STEP (CARD_W / 2)
 
 // Atari card edges already space split hands apart
 #define HAND_GAP (1 - CARD_EDGE)
@@ -71,9 +80,9 @@ static const char *handLabel(Hand *hd) {
 static unsigned char handWidth(unsigned char n) {
   static unsigned char w;
 
-  if (step == 2)
-    return n * 2 + CARD_EDGE * 2;
-  w = n + 1 + CARD_EDGE * 2;
+  if (step == CARD_W)
+    return n * CARD_W + CARD_EDGE * 2;
+  w = n * FAN_STEP + CARD_W - FAN_STEP + CARD_EDGE * 2;
   return w < 4 ? 4 : w;
 }
 
@@ -83,15 +92,15 @@ void redrawDealer() {
   clearArea(WIDTH/2 - DEALER_W/2 - 1, DEALER_Y - 1, DEALER_W + 2, CARD_HEIGHT + 1);
 
   n = (unsigned char)(strlen(state.dealer) / 2);
-  step = 2;
+  step = CARD_W;
   w = handWidth(n);
   if (w > DEALER_W) {
-    step = 1;
+    step = FAN_STEP;
     w = handWidth(n);
   }
   dx = (unsigned char)(WIDTH/2 - w/2);
 
-  strcpy(tempBuffer + 64, "dealer");
+  strcpy(tempBuffer + 64, "Dealer");
   if (n) {
     strcat(tempBuffer + 64, " ");
     if (state.dealerFlags & FLAG_BLACKJACK)
@@ -108,7 +117,7 @@ void redrawDealer() {
   centerText(DEALER_Y - 1, tempBuffer + 64);
 
   for (c = 0; c < n; c++)
-    drawCard(dx + c * step, DEALER_Y, (step == 1 && c) ? FANNED_CARD : FULL_CARD, state.dealer + c * 2);
+    drawCard(dx + c * step, DEALER_Y, (step != CARD_W && c) ? FANNED_CARD : FULL_CARD, state.dealer + c * 2);
 }
 
 static void drawSeat(unsigned char p) {
@@ -172,19 +181,21 @@ static void drawSeat(unsigned char p) {
     return;
 
   // Full width cards if every hand fits, otherwise fan them all
-  for (step = 2; ; step = 1) {
+  for (step = CARD_W; ; step = FAN_STEP) {
     w = (pl->handCount - 1) * HAND_GAP;
     for (c = 0; c < pl->handCount; c++) {
       shown[c] = (unsigned char)(strlen(pl->hands[c].cards) / 2);
       w += handWidth(shown[c]);
     }
-    if (w <= SEAT_W || step == 1)
+    if (w <= SEAT_W || step != CARD_W)
       break;
   }
 
   // Two long split hands can overflow even fanned: drop their oldest cards
   while (w > SEAT_W) {
-    c = shown[1] > shown[0];
+    c = 0;
+    if (shown[1] > shown[0])
+      c = 1;
     w -= handWidth(shown[c]);
     w += handWidth(--shown[c]);
   }
@@ -200,7 +211,7 @@ static void drawSeat(unsigned char p) {
       drawUnderline(hx, sy - 1, (unsigned char)strlen(handLabel(hd)));
 
     for (d = 0; d < shown[c]; d++)
-      drawCard(hx + d * step, sy, (step == 1 && d) ? FANNED_CARD : FULL_CARD, hd->cards + (n - shown[c] + d) * 2);
+      drawCard(hx + d * step, sy, (step != CARD_W && d) ? FANNED_CARD : FULL_CARD, hd->cards + (n - shown[c] + d) * 2);
 
     hx += handWidth(shown[c]) + HAND_GAP;
   }
@@ -219,19 +230,19 @@ void drawTable() {
 
   resetScreen();
 
-  centerText(9, "blackjack");
-  centerText(10, "pays 3 to 2");
-  centerText(12, "stands on 17");
+  centerText(9, "Blackjack");
+  centerText(10, "Pays 3 to 2");
+  centerText(12, "Stands on 17");
 
   // The shoe
-  drawCard(WIDTH - 4, 1, FULL_CARD, "??");
+  drawCard(WIDTH - 2 - CARD_W, 1, FULL_CARD, "??");
 
   redrawDealer();
   for (p = 0; p < state.playerCount; p++)
     drawSeat(p);
 }
 
-/* Menu stops, in screen order. Bets show as bare amounts after a "bet"
+/* Menu stops, in screen order. Bets show as bare amounts after a "Bet"
    label; "same as last" is left out and the cursor starts on that amount
    instead. */
 static unsigned char stopX[5], stopW[5], stopRef[5], stopCount;
@@ -246,12 +257,12 @@ static const char *moveLabel(ValidMove *v) {
   }
 #if WIDTH < 40
   switch (v->move[0]) {
-    case 'h': return "hit";
-    case 'd': return "double";
+    case 'h': return "Hit";
+    case 'd': return "Double";
     case 's':
       switch (v->move[1]) {
-        case 't': return "stay";
-        case 'p': return "split";
+        case 't': return "Stay";
+        case 'p': return "Split";
       }
       return SURRENDER_LABEL;
   }
@@ -265,7 +276,7 @@ unsigned char layoutMoveMenu() {
   clearStatusBar();
   mx = 0;
   if (state.round == ROUND_BETTING) {
-    drawStatusTextAt(0, "bet");
+    drawStatusTextAt(0, "Bet");
     mx = 4;
   }
 
@@ -337,11 +348,11 @@ void drawStatusTimeLeft() {
 
 void drawGameStatus() {
   if (state.activePlayer > 0 || (state.activePlayer == 0 && state.viewing)) {
-    strcpy(tempBuffer, "waiting on ");
+    strcpy(tempBuffer, "Waiting on ");
     strcat(tempBuffer, state.players[state.activePlayer].name);
     drawStatusText(tempBuffer);
   } else if (state.round == ROUND_DEALER) {
-    drawStatusText("dealer plays");
+    drawStatusText("Dealer plays");
   } else {
     drawStatusText(state.lastResult);
   }

@@ -5,6 +5,7 @@ PLATFORMS += apple2
 PLATFORMS += atari
 #PLATFORMS += c64
 PLATFORMS += coco
+PLATFORMS += model2
 PLATFORMS += msdos
 #PLATFORMS += msxrom
 
@@ -70,6 +71,9 @@ build:
 build/$(PRODUCT)/coco/src/coco/charset.o: build/charset_active.fnt
 
 CFLAGS_EXTRA_MSDOS = -q -otexan
+
+# CCP refuses a .COM that reaches past the TPA; the startup zeroes BSS anyway
+LDFLAGS_EXTRA_MODEL2 = -pragma-define:CRT_TRIM_BSS=1
 
 # Code starts at $4000, after hires page 1
 LDFLAGS_EXTRA_APPLE2 = -C src/apple2/apple2-hgr.cfg

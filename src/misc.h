@@ -27,7 +27,7 @@
 #define PREF_HELP 0  // 1/2 seen help screen no/yes
 #define PREF_COLOR 1 // color mode + 1
 
-#if defined(__CC65__) || defined(_CMOC_VERSION_)
+#if defined(__CC65__) || defined(_CMOC_VERSION_) || defined(__Z88DK)
 #define _Packed
 #endif
 

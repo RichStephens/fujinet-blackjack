@@ -20,11 +20,12 @@ jobs:
           - atari
           # - c64
           - coco
+          - model2
           - msdos
           # - msxdos
 
     container:
-      image: fozztexx/defoogi:1.4.7
+      image: fozztexx/defoogi:1.4.8
 
     steps:
       - uses: actions/checkout@v4

@@ -20,6 +20,14 @@ char cgetc(void);
 #define TABLE_LEFT (WIDTH/2 - 13)
 #define TABLE_TOP 5
 
+#ifndef drawTextCursor
+#define drawTextCursor drawChip
+#endif
+
+#ifndef RETURN_KEY_NAME
+#define RETURN_KEY_NAME "Return"
+#endif
+
 static void centerText(unsigned char y, const char *text) {
   drawText((unsigned char)(WIDTH/2 - strlen(text)/2), y, text);
 }
@@ -57,31 +65,31 @@ static void helpMove(unsigned char y, const char *move, const char *text) {
 static void showHelpScreen() {
   resetScreenWithBorder();
 
-  centerText(3, "how to play blackjack");
-  centerText(5, "get closer to 21 than the");
+  centerText(3, "How to play blackjack");
+  centerText(5, "Get closer to 21 than the");
   centerText(6, "dealer without going over.");
-  centerText(7, "faces count 10, aces 1 or 11.");
-  centerText(8, "blackjack pays 3 to 2.");
-  centerText(9, "dealer stands on all 17s.");
+  centerText(7, "Faces count 10, aces 1 or 11.");
+  centerText(8, "Blackjack pays 3 to 2.");
+  centerText(9, "Dealer stands on all 17s.");
 
-  helpMove(11, "hit", "take a card");
+  helpMove(11, "Hit", "Take a card");
 #if WIDTH >= 40
-  helpMove(12, "stand", "keep the hand");
+  helpMove(12, "Stand", "Keep the hand");
 #else
-  helpMove(12, "stay", "keep the hand");
+  helpMove(12, "Stay", "Keep the hand");
 #endif
-  helpMove(13, "double", "double bet, one card");
-  helpMove(14, "split", "play a pair as 2 hands");
+  helpMove(13, "Double", "Double bet, one card");
+  helpMove(14, "Split", "Play a pair as 2 hands");
 #if WIDTH >= 40
-  helpMove(15, "surrender", "give up half your bet");
+  helpMove(15, "Surrender", "Give up half your bet");
 #else
-  helpMove(15, "fold", "give up half your bet");
+  helpMove(15, "Fold", "Give up half your bet");
 #endif
 
-  centerText(17, "left/right picks a move,");
-  centerText(18, "return plays it.");
+  centerText(17, "Left/right picks a move,");
+  centerText(18, RETURN_KEY_NAME " plays it.");
 
-  centerStatusText("press a key to continue");
+  centerStatusText("Press a key to continue");
 
   clearCommonInput();
   cgetc();
@@ -115,7 +123,7 @@ static bool inputFieldCycle(uint8_t x, uint8_t y, uint8_t max, char *buffer) {
     lastY = y;
     curx = (unsigned char)strlen(buffer);
     drawText(x, y, buffer);
-    drawChip(x + curx, y);
+    drawTextCursor(x + curx, y);
   }
 
   if (!kbhit())
@@ -137,7 +145,7 @@ static bool inputFieldCycle(uint8_t x, uint8_t y, uint8_t max, char *buffer) {
   }
 
   drawText(x, y, buffer);
-  drawChip(x + curx, y);
+  drawTextCursor(x + curx, y);
   return done == 1;
 }
 
@@ -146,7 +154,7 @@ static void showPlayerNameScreen() {
   clearStatusBar();
   drawLogo();
 
-  centerText(HEIGHT/2, "enter your name");
+  centerText(HEIGHT/2, "Enter your name");
   drawBox(WIDTH/2 - PLAYER_NAME_MAX/2 - 1, HEIGHT/2 + 2, PLAYER_NAME_MAX + 1, 1);
   drawText(WIDTH/2 - PLAYER_NAME_MAX/2, HEIGHT/2 + 3, playerName);
 
@@ -177,7 +185,7 @@ void showWelcomeScreen() {
   welcomeActionVerifyPlayerName();
   welcomeActionVerifyServerDetails();
 
-  strcpy(tempBuffer, "welcome ");
+  strcpy(tempBuffer, "Welcome ");
   strcat(tempBuffer, playerName);
   centerText(HEIGHT/2, tempBuffer);
   pause(45);
@@ -209,12 +217,12 @@ void showTableSelectionScreen() {
   skipApiCall = 0;
   while (!query[0]) {
     if (!skipApiCall)
-      centerStatusText("refreshing table list..");
+      centerStatusText("Refreshing table list..");
 
     resetScreenWithBorder();
-    centerText(3, "choose a table to join");
-    drawText(TABLE_LEFT, TABLE_TOP, "table");
-    drawText(TABLE_LEFT + 19, TABLE_TOP, "players");
+    centerText(3, "Choose a table to join");
+    drawText(TABLE_LEFT, TABLE_TOP, "Table");
+    drawText(TABLE_LEFT + 19, TABLE_TOP, "Players");
     drawLine(TABLE_LEFT, TABLE_TOP + 1, 26);
 
     if (!skipApiCall)
@@ -224,16 +232,23 @@ void showTableSelectionScreen() {
     if (clientState.tables.count) {
       for (i = 0; i < clientState.tables.count; ++i) {
         table = &clientState.tables.table[i];
+#ifdef MIXED_CASE
+        for (j = 0; table->name[j]; ++j)
+          if (table->name[j] >= 'a' && table->name[j] <= 'z')
+            table->name[j] -= 32;
+#endif
         drawText(TABLE_LEFT, TABLE_TOP + 2 + i*2, table->name);
         drawText((unsigned char)(TABLE_LEFT + 26 - strlen(table->players)), TABLE_TOP + 2 + i*2, table->players);
         if (table->players[0] > '0')
           drawText((unsigned char)(TABLE_LEFT + 24 - strlen(table->players)), TABLE_TOP + 2 + i*2, "*");
       }
     } else {
-      centerText(12, "no tables are available");
+      centerText(12, "No tables are available");
     }
 
-#if WIDTH >= 40
+#ifdef TABLE_HINTS
+    drawStatusText(TABLE_HINTS);
+#elif WIDTH >= 40
     drawStatusText("r-efresh   h-elp  c-olor   n-ame   q-uit");
 #else
     drawStatusText("r-efresh   h-elp   n-ame   q-uit");
@@ -286,7 +301,7 @@ void showTableSelectionScreen() {
     }
   }
 
-  centerText(HEIGHT - 7, "connecting to server");
+  centerText(HEIGHT - 7, "Connecting to server");
   progressAnim(HEIGHT - 5);
 
   tableActionJoinServer();
@@ -301,20 +316,24 @@ void showInGameMenuScreen() {
     x = WIDTH/2 - 9;
     y = HEIGHT/2 - 3;
 
+#ifdef NO_COLOR
+    drawBox(x - 3, y - 2, 22, 7);
+#else
     drawBox(x - 3, y - 2, 22, 9);
-    drawText(x, y, "  q: quit table");
-    drawText(x, y += 2, "  h: how to play");
-#if WIDTH >= 40
-    drawText(x, y += 2, "  c: color toggle");
 #endif
-    drawText(x, y += 2, ESC_KEY_NAME ": keep playing");
+    drawText(x, y, "  Q: Quit table");
+    drawText(x, y += 2, "  H: How to play");
+#if WIDTH >= 40 && !defined(NO_COLOR)
+    drawText(x, y += 2, "  C: Color toggle");
+#endif
+    drawText(x, y += 2, ESC_KEY_NAME ": Keep playing");
 
     clearCommonInput();
     i = 1;
     while (i == 1) {
       readCommonInput();
       switch (inputKey) {
-#if WIDTH >= 40
+#if WIDTH >= 40 && !defined(NO_COLOR)
         case 'c':
         case 'C':
           prefs[PREF_COLOR] = cycleNextColor() + 1;
@@ -334,7 +353,7 @@ void showInGameMenuScreen() {
         case 'q':
         case 'Q':
           resetScreenWithBorder();
-          centerText(10, "please wait");
+          centerText(10, "Please wait");
           apiCall("leave");
           progressAnim(12);
           clearCommonInput();
