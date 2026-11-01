@@ -1,6 +1,6 @@
 #ifdef _CMOC_VERSION_
 /*
-  Platform specific sound functions
+  Platform-specific sound functions
 */
 #include <coco.h>
 #include "../misc.h"
@@ -20,7 +20,9 @@ void initSound() {}
 
 
 void soundJoinGame() {
-
+  tone(40,1,50);
+  tone(2,1,50);
+  tone(40,1,0);
 }
 
 void soundMyTurn() {
@@ -29,7 +31,10 @@ void soundMyTurn() {
 }
 
 void soundGameDone() {
-
+  tone(0,2,20);
+  tone(70,3,100);
+  tone(90,3,20);
+  tone(110,5,20);
 }
 
 void soundDealCard() {
@@ -43,11 +48,13 @@ void soundTick() {
 }
 
 void soundPlayerJoin() {
-
+  tone(60,1,10);
+  tone(100,1,0);
 }
 
 void soundPlayerLeft() {
-
+  tone(100,1,10);
+  tone(60,1,0);
 }
 
 void soundSelectMove() {

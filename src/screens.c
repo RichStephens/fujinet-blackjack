@@ -190,7 +190,7 @@ void showWelcomeScreen() {
 }
 
 static void tableActionJoinServer() {
-  clearGameState();
+  clearGameState(1);
 
   strcat(query, "&player=");
   strcat(query, playerName);
@@ -345,6 +345,6 @@ void showInGameMenuScreen() {
     }
   }
 
-  clearGameState();
+  clearGameState(0);
   clearCommonInput();
 }

@@ -1,7 +1,7 @@
 #ifndef GAMELOGIC_H
 #define GAMELOGIC_H
 
-void clearGameState();
+void clearGameState(unsigned char joining);
 void showGameScreen();
 void requestPlayerMove();
 

@@ -14,7 +14,7 @@
 
 // The last state drawn, so only what changed is redrawn
 static Game prev;
-static unsigned char prevCards, wasViewing;
+static unsigned char prevCards, wasViewing, justJoined;
 
 static unsigned char cardCount() {
   static unsigned char p, c, n;
@@ -26,8 +26,9 @@ static unsigned char cardCount() {
   return n / 2;
 }
 
-void clearGameState() {
+void clearGameState(unsigned char joining) {
   memset(&prev, 0, sizeof(prev));
+  justJoined = joining;
   prevCards = 255;
   wasViewing = 0;
   redrawGameScreen = 1;
@@ -67,6 +68,25 @@ void showGameScreen() {
 
   if (state.activePlayer != 0 || state.viewing)
     drawGameStatus();
+
+  if (justJoined) {
+    justJoined = 0;
+    if (!state.viewing)
+      soundJoinGame();
+  } else if (prev.playerCount) {
+    if (state.playerCount > prev.playerCount)
+      soundPlayerJoin();
+    else if (state.playerCount < prev.playerCount)
+      soundPlayerLeft();
+
+    for (p = 0; p < state.playerCount; p++)
+      if (state.players[p].purse < prev.players[p].purse &&
+          !strcmp(state.players[p].name, prev.players[p].name))
+        soundTakeChip(p);
+
+    if (state.round == ROUND_OVER && prev.round != ROUND_OVER)
+      soundGameDone();
+  }
 
   memcpy(&prev, &state, sizeof(Game));
 }
