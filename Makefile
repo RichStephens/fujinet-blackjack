@@ -1,5 +1,5 @@
 PRODUCT = blkjack
-#PLATFORMS += adam
+PLATFORMS += adam
 #PLATFORMS += adam_cpm
 PLATFORMS += apple2
 PLATFORMS += atari
@@ -69,6 +69,10 @@ build:
 	mkdir -p $@
 
 build/$(PRODUCT)/coco/src/coco/charset.o: build/charset_active.fnt
+
+# z88dk's Adam subtype defines no Adam macro of its own
+CFLAGS_EXTRA_ADAM = -D__ADAM__
+LDFLAGS_EXTRA_ADAM += --generic-console -pragma-redirect:CRT_FONT=_font
 
 CFLAGS_EXTRA_MSDOS = -q -otexan
 

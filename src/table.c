@@ -45,8 +45,13 @@ static const unsigned char seatOrder[5][5] = {
 #endif
 #define FAN_STEP (CARD_W / 2)
 
+// Columns a card's art reaches past its right side
+#ifndef CARD_SPILL
+#define CARD_SPILL 0
+#endif
+
 // Atari card edges already space split hands apart
-#define HAND_GAP (1 - CARD_EDGE)
+#define HAND_GAP (1 - CARD_EDGE - CARD_SPILL)
 #define MENU_END (WIDTH - 5 - STATUS_TIMER_WIDTH)
 
 static unsigned char step;
@@ -81,8 +86,8 @@ static unsigned char handWidth(unsigned char n) {
   static unsigned char w;
 
   if (step == CARD_W)
-    return n * CARD_W + CARD_EDGE * 2;
-  w = n * FAN_STEP + CARD_W - FAN_STEP + CARD_EDGE * 2;
+    return n * CARD_W + CARD_EDGE * 2 + CARD_SPILL;
+  w = n * FAN_STEP + CARD_W - FAN_STEP + CARD_EDGE * 2 + CARD_SPILL;
   return w < 4 ? 4 : w;
 }
 

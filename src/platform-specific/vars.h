@@ -7,6 +7,7 @@
 #include "../apple2/vars.h"
 #include "../msdos/vars.h"
 #include "../model2/vars.h"
+#include "../adam/vars.h"
 
 #ifndef WIDTH
 #error "no platform vars.h matched this build"
